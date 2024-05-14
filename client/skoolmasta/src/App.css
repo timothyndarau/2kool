@@ -1,0 +1,70 @@
+/* app.css */
+
+/* Login Component */
+.login-container {
+    max-width: 400px;
+    margin: auto;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+}
+
+.error {
+    color: red;
+}
+
+  /* Signup Component */
+  .signup-container {
+    max-width: 400px;
+    margin: auto;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+  }
+  
+  /* AdminDashboard Component */
+  .admin-container {
+    max-width: 800px;
+    margin: auto;
+    padding: 20px;
+  }
+  
+  /* AttemptedBorrows Component */
+  .attempted-container {
+    max-width: 800px;
+    margin: auto;
+    padding: 20px;
+  }
+  
+  /* Input Component */
+  .input-form {
+    margin-bottom: 20px;
+}
+
+.input-field {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-sizing: border-box;
+}
+
+.submit-button {
+    background-color: dodgerblue;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 20px;
+    cursor: pointer;
+}
+
+.submit-button:hover {
+    background-color: #007bff;
+}
+
+.error-message {
+    color: red;
+}
