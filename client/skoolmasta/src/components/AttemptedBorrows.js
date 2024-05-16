@@ -21,8 +21,12 @@ const AttemptedBorrows = () => {
                 setError('Failed to fetch attempted borrows');
             }
         } catch (error) {
-            setError('An error occurred');
-            console.error('Error occurred:', error);
+            if (error.name === 'SyntaxError') {
+                setError('Invalid JSON response');
+            } else {
+                setError('An error occurred');
+                console.error('Error occurred:', error);
+            }
         } finally {
             setLoading(false);
         }

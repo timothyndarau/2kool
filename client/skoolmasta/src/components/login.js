@@ -9,7 +9,15 @@ const Login = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        // Form validation
+        if (!username.trim() || !password.trim()) {
+            setError('Please enter both username and password.');
+            return;
+        }
+
         setLoading(true);
+
         try {
             const response = await fetch('/login', {
                 method: 'POST',
@@ -18,15 +26,24 @@ const Login = () => {
                 },
                 body: JSON.stringify({ username, password }),
             });
+
+            // Check if response is okay
             if (response.ok) {
-                // Login successful
+                const responseData = await response.json(); // Parse JSON response
+                console.log('Parsed Response Data:', responseData);
+                // Further processing of parsed data...
                 console.log('Login successful');
+                setUsername('');
+                setPassword('');
+                setError('');
             } else {
+                // Handle non-200 status code
                 const data = await response.json();
                 setError(data.error || 'Login failed');
             }
         } catch (error) {
-            setError('An error occurred');
+            // Handle fetch or parsing errors
+            setError('An error occurred. Please try again later.');
             console.error('Error occurred:', error);
         } finally {
             setLoading(false);
@@ -37,11 +54,27 @@ const Login = () => {
         <div className="login-container">
             <h2>Login</h2>
             <form onSubmit={handleSubmit}>
-                <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} placeholder="Username" />
-                <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" />
+                <label htmlFor="username">Username:</label>
+                <input
+                    type="text"
+                    id="username"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    placeholder="Username"
+                />
+                <label htmlFor="password">Password:</label>
+                <input
+                    type="password"
+                    id="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Password"
+                />
                 {loading && <p>Loading...</p>}
-                {error && <p className="error">{error}</p>} {/* Apply error class */}
-                <button type="submit">Login</button>
+                {error && <p className="error">{error}</p>}
+                <button type="submit" disabled={loading}>
+                    {loading ? 'Logging in...' : 'Login'}
+                </button>
             </form>
         </div>
     );

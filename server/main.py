@@ -19,20 +19,23 @@ def load_user(user_id):
 @app.route('/login', methods=['POST'])
 def login():
     if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
+        data = request.json  # Assuming the frontend sends JSON data
         
+        username = data.get('username')
+        password = data.get('password')
+
         # Perform login authentication
         user = User.query.filter_by(username=username).first()
         if user and check_password_hash(user.password, password):
             # Login successful
-            # Here you can perform any additional actions like setting session variables, etc.
             return jsonify({'message': 'Login successful'}), 200
         else:
             # Login failed
             return jsonify({'error': 'Invalid username or password'}), 401
     else:
+        # Return error for unsupported HTTP method
         return jsonify({'error': 'Method not allowed'}), 405
+
 
 @app.route('/signup', methods=['POST'])
 def signup():
