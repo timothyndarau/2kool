@@ -13,7 +13,7 @@ const AttemptedBorrows = () => {
     const fetchData = async () => {
         setLoading(true);
         try {
-            const response = await fetch('/admin/attempts');
+            const response = await fetch('http://localhost:3000/admin/attempts');
             if (response.ok) {
                 const data = await response.json();
                 setAttemptedBorrows(data.attemptedBorrows);

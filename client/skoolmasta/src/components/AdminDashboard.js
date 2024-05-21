@@ -15,7 +15,7 @@ const AdminDashboard = () => {
     const fetchData = async () => {
         setLoading(true);
         try {
-            const response = await fetch('/admin/dashboard');
+            const response = await fetch('http://localhost:3000/admin/dashboard');
             if (response.ok) {
                 const data = await response.json();
                 setTeachers(data.teachers);
