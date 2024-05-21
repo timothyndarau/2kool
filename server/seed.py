@@ -1,53 +1,111 @@
+import json
 from main import db, app
 from models import User, Item, Inventory, BorrowingHistory
+
+# JSON data
+seed_data = {
+    "users": [
+        {
+            "username": "admi1",
+            "password": "admin_password1",
+            "is_admin": True,
+            "role": "admin"
+        },
+        {
+            "username": "teacher11",
+            "password": "teacher_password1",
+            "is_admin": False,
+            "role": "teacher"
+        },
+        {
+            "username": "student11",
+            "password": "student_password1",
+            "is_admin": False,
+            "role": "student"
+        }
+    ],
+    "items": [
+        {
+            "name": "kasuku",
+            "description": "A book for writing"
+        },
+        {
+            "name": "stylus",
+            "description": "A writing device"
+        },
+        {
+            "name": "tablet",
+            "description": "A portable phone"
+        }
+    ],
+    "inventory": [
+        {
+            "item_id": 1,
+            "quantity": 50
+        },
+        {
+            "item_id": 2,
+            "quantity": 100
+        },
+        {
+            "item_id": 3,
+            "quantity": 20
+        }
+    ],
+    "borrowing_history": [
+        {
+            "borrower_id": 3,
+            "user_id": 2,
+            "item_id": 1,
+            "returned": False
+        },
+        {
+            "borrower_id": 3,
+            "user_id": 2,
+            "item_id": 2,
+            "returned": False
+        }
+    ]
+}
 
 # Initialize the app context
 db.app = app
 app.app_context().push()
 
-# Create users
-admin = User(username='admin', password='admin_password', is_admin=True, role='admin')
-teacher = User(username='teacher1', password='teacher_password', is_admin=False, role='teacher')
-student = User(username='student1', password='student_password', is_admin=False, role='student')
-
-# Add users to the session
-db.session.add(admin)
-db.session.add(teacher)
-db.session.add(student)
-
-# Create items
-item1 = Item(name='Book', description='A book for reading')
-item2 = Item(name='Pen', description='A writing instrument')
-item3 = Item(name='Laptop', description='A portable computer')
-
-# Add items to the session
-db.session.add(item1)
-db.session.add(item2)
-db.session.add(item3)
+# Seed users
+for user_data in seed_data['users']:
+    user = User(**user_data)
+    db.session.add(user)
 
 # Commit the changes to the database
 db.session.commit()
 
-# Create inventory entries for items
-inventory_item1 = Inventory(item_id=item1.id, quantity=50)
-inventory_item2 = Inventory(item_id=item2.id, quantity=100)
-inventory_item3 = Inventory(item_id=item3.id, quantity=20)
-
-# Add inventory entries to the session
-db.session.add(inventory_item1)
-db.session.add(inventory_item2)
-db.session.add(inventory_item3)
+# Seed items
+for item_data in seed_data['items']:
+    existing_item = Item.query.filter_by(name=item_data['name']).first()
+    if existing_item:
+        # Item already exists, update its description
+        existing_item.description = item_data['description']
+    else:
+        # Item does not exist, create a new one
+        item = Item(**item_data)
+        db.session.add(item)
 
 # Commit the changes to the database
 db.session.commit()
 
-# Create borrowing history entries
-borrowing_history_entry1 = BorrowingHistory(borrower_id=student.id, user_id=teacher.id, item_id=item1.id, returned=False)
-borrowing_history_entry2 = BorrowingHistory(borrower_id=student.id, user_id=teacher.id, item_id=item2.id, returned=False)
+# Seed inventory
+for inventory_data in seed_data['inventory']:
+    inventory = Inventory(**inventory_data)
+    db.session.add(inventory)
 
-# Add borrowing history entries to the session
-db.session.add(borrowing_history_entry1)
-db.session.add(borrowing_history_entry2)
+# Commit the changes to the database
+db.session.commit()
+
+# Seed borrowing history
+for history_data in seed_data['borrowing_history']:
+    history = BorrowingHistory(**history_data)
+    db.session.add(history)
 
 # Commit the changes to the database
 db.session.commit()
