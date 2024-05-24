@@ -18,10 +18,10 @@ class Item(db.Model):
     description = db.Column(db.String(255), nullable=False)
     availability = db.Column(db.Boolean, default=True)
     inventory = db.relationship('Inventory', backref='item', uselist=False)
-    
-    def __init__(self, name, quantity):
+
+    def __init__(self, name, description):
         self.name = name
-        self.inventory = Inventory(quantity=quantity)
+        self.description = description
 
 class Inventory(db.Model):
     __tablename__ = 'inventory'

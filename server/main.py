@@ -82,16 +82,20 @@ def attempted_borrows():
 @app.route('/input', methods=['POST'])
 def add_to_inventory():
     try:
+        # Ensure we receive JSON data
         if not request.is_json:
             return jsonify({'error': 'Request must be JSON'}), 400
-
+               
         data = request.json
-        item_name = data.get('itemName')
-        quantity = data.get('quantity')
+        item_name = data['itemName']
+        quantity = data['quantity']
+        description = data.get('description', '')
 
+        # Validate input data
         if not item_name or not quantity:
             return jsonify({'error': 'Item name and quantity are required'}), 400
 
+        # Validate quantity as positive integer
         try:
             quantity = int(quantity)
             if quantity <= 0:
@@ -99,14 +103,22 @@ def add_to_inventory():
         except ValueError:
             return jsonify({'error': 'Quantity must be a positive integer'}), 400
 
-        new_item = Item(name=item_name, inventory=Inventory(quantity=quantity))
+        # Create a new item object
+        new_item = Item(name=item_name, description=description)
         db.session.add(new_item)
+        db.session.commit()  # Commit to get the item ID
+
+        # Create a new inventory object
+        new_inventory = Inventory(item_id=new_item.id, quantity=quantity)
+        db.session.add(new_inventory)
         db.session.commit()
+
         return jsonify({'message': 'Item added successfully'}), 201
     except KeyError as e:
-        return jsonify({'error': f'Missing field: {e}'}), 400
+        return jsonify({'error': f'Missing form field: {e}'}), 400
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
 
 if __name__ == '__main__':
     with app.app_context():
