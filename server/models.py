@@ -22,6 +22,7 @@ class Item(db.Model):
     def __init__(self, name, description):
         self.name = name
         self.description = description
+        self.inventory = Inventory(quantity=0)  # Initialize inventory with quantity 0
 
 class Inventory(db.Model):
     __tablename__ = 'inventory'
@@ -32,9 +33,8 @@ class Inventory(db.Model):
 class BorrowingHistory(db.Model):
     __tablename__ = 'borrowing_history'
     id = db.Column(db.Integer, primary_key=True)
-    borrower_id = db.Column(db.Integer, nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
-    item_id = db.Column(db.Integer, db.ForeignKey('items.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    item_id = db.Column(db.Integer, db.ForeignKey('items.id'), nullable=False)
     returned = db.Column(db.Boolean, default=False)
 
     user = db.relationship('User', backref='borrowing_history')

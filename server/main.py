@@ -1,3 +1,4 @@
+import logging
 from flask import Flask, request, jsonify, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
@@ -5,6 +6,8 @@ from flask_migrate import Migrate
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from models import db, Item, BorrowingHistory, User, Inventory  # Import all models
+
+logging.basicConfig(level=logging.DEBUG)
 
 app = Flask(__name__)
 CORS(app)
@@ -40,30 +43,29 @@ def login():
 @app.route('/signup', methods=['POST'])
 def signup():
     try:
-        data = request.json  # Assuming the frontend sends JSON data
+        data = request.get_json()
         username = data.get('username')
-        email = data.get('email')
         password = data.get('password')
         role = data.get('role')
 
-        if not username or not email or not password or not role:
-            return jsonify({'error': 'All fields are required'}), 400
+        if not username or not password or not role:
+            return jsonify({'success': False, 'message': 'Username, password, and role are required'}), 400
 
-        existing_user = User.query.filter((User.username == username) | (User.email == email)).first()
+        existing_user = User.query.filter_by(username=username).first()
         if existing_user:
-            return jsonify({'error': 'Username or email already exists'}), 400
+            return jsonify({'success': False, 'message': 'Username already exists'}), 400
 
-        hashed_password = generate_password_hash(password, method='sha256')
-        new_user = User(username=username, email=email, password=hashed_password, role=role)
+        # Correct the hashing method
+        hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
+        new_user = User(username=username, password=hashed_password, role=role)
         db.session.add(new_user)
         db.session.commit()
 
-        return jsonify({'message': 'User registered successfully'}), 201
-
+        return jsonify({'success': True, 'message': 'User created successfully'}), 201
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
-
+        app.logger.error(f'Error during signup: {str(e)}')
+        return jsonify({'success': False, 'message': 'Internal server error'}), 500
+    
 @app.route('/logout')
 @login_required
 def logout():
