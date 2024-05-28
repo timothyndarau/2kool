@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
+from flask import Flask, request, jsonify, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from flask_migrate import Migrate
@@ -10,9 +10,6 @@ app = Flask(__name__)
 CORS(app)
 app.config['SECRET_KEY'] = 'your_secret_key'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
-# Initialize extensions
 db.init_app(app)
 migrate = Migrate(app, db)
 login_manager = LoginManager(app)
@@ -22,80 +19,89 @@ login_manager.login_view = 'login'
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-@app.route('/login', methods=['POST'])
+@app.route('/login', methods=['GET', 'POST'])
 def login():
-    data = request.json  # Assuming the frontend sends JSON data
-    username = data.get('username')
-    password = data.get('password')
+    if request.method == (['GET', 'POST']):
+        data = request.json  # Assuming the frontend sends JSON data
+        username = data.get('username')
+        password = data.get('password')
 
-    user = User.query.filter_by(username=username).first()
-    if user and user.password == password:
-        login_user(user)
-        return jsonify({'message': 'Login successful'}), 200
+        # Perform login authentication
+        user = User.query.filter_by(username=username).first()
+        if user and check_password_hash(user.password, password):
+            login_user(user)
+            return jsonify({'message': 'Login successful'}), 200
+        else:
+            return jsonify({'error': 'Invalid username or password'}), 401
     else:
-        return jsonify({'error': 'Invalid username or password'}), 401
+        # If GET request, return a simple message or an HTML template
+        return jsonify({'message': 'Please login via POST request with username and password'}), 200
 
 @app.route('/signup', methods=['POST'])
 def signup():
-    data = request.json
-    username = data.get('username')
-    password = data.get('password')
-    email = data.get('email')
+    try:
+        data = request.json  # Assuming the frontend sends JSON data
+        username = data.get('username')
+        email = data.get('email')
+        password = data.get('password')
+        role = data.get('role')
 
-    existing_user = User.query.filter_by(username=username).first()
-    existing_email = User.query.filter_by(email=email).first()
-    if existing_user:
-        return jsonify({'error': 'Username already exists'}), 400
-    if existing_email:
-        return jsonify({'error': 'Email already exists'}), 400
+        if not username or not email or not password or not role:
+            return jsonify({'error': 'All fields are required'}), 400
 
-    new_user = User(username=username, email=email, password=generate_password_hash(password))
-    db.session.add(new_user)
-    db.session.commit()
-    return jsonify({'message': 'User created successfully'}), 201
+        existing_user = User.query.filter((User.username == username) | (User.email == email)).first()
+        if existing_user:
+            return jsonify({'error': 'Username or email already exists'}), 400
+
+        hashed_password = generate_password_hash(password, method='sha256')
+        new_user = User(username=username, email=email, password=hashed_password, role=role)
+        db.session.add(new_user)
+        db.session.commit()
+
+        return jsonify({'message': 'User registered successfully'}), 201
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 
 @app.route('/logout')
 @login_required
 def logout():
     logout_user()
-    return redirect(url_for('login'))
+    return jsonify({'message': 'Logged out successfully'}), 200
 
-@app.route('/admin/dashboard')
+@app.route('/admin/dashboard', methods=['GET'])
 @login_required
 def admin_dashboard():
     if not current_user.is_admin:
-        return redirect(url_for('login'))
-
-    # Example data retrieval for dashboard
+        return jsonify({'error': 'Access denied'}), 403
+    
     items = Item.query.all()
-    return render_template('admin_dashboard.html', items=items)
+    return jsonify({'items': [item.to_dict() for item in items]}), 200
 
-@app.route('/admin/attempts')
+@app.route('/admin/attempts', methods=['GET'])
 @login_required
 def attempted_borrows():
     if not current_user.is_admin:
         return redirect(url_for('login'))
-
+    
     attempted_borrows = BorrowingHistory.query.all()
-    return render_template('attempted_borrows.html', attempted_borrows=attempted_borrows)
+    return jsonify({'attempted_borrows': [attempt.to_dict() for attempt in attempted_borrows]}), 200
 
 @app.route('/input', methods=['POST'])
 def add_to_inventory():
     try:
-        # Ensure we receive JSON data
         if not request.is_json:
             return jsonify({'error': 'Request must be JSON'}), 400
-               
+
         data = request.json
         item_name = data['itemName']
         quantity = data['quantity']
         description = data.get('description', '')
 
-        # Validate input data
         if not item_name or not quantity:
             return jsonify({'error': 'Item name and quantity are required'}), 400
 
-        # Validate quantity as positive integer
         try:
             quantity = int(quantity)
             if quantity <= 0:
@@ -103,12 +109,10 @@ def add_to_inventory():
         except ValueError:
             return jsonify({'error': 'Quantity must be a positive integer'}), 400
 
-        # Create a new item object
         new_item = Item(name=item_name, description=description)
         db.session.add(new_item)
-        db.session.commit()  # Commit to get the item ID
+        db.session.commit()
 
-        # Create a new inventory object
         new_inventory = Inventory(item_id=new_item.id, quantity=quantity)
         db.session.add(new_inventory)
         db.session.commit()
@@ -119,8 +123,5 @@ def add_to_inventory():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-
 if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
     app.run(debug=True)
