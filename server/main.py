@@ -9,7 +9,7 @@ from models import db, Item, BorrowingHistory, User, Inventory  # Import all mod
 
 logging.basicConfig(level=logging.DEBUG)
 
-app = Flask(__name__)
+app = Flask(__name__) 
 CORS(app)
 app.config['SECRET_KEY'] = 'your_secret_key'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
@@ -24,7 +24,7 @@ def load_user(user_id):
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    if request.method == (['GET', 'POST']):
+    if request.method == 'POST':
         data = request.json  # Assuming the frontend sends JSON data
         username = data.get('username')
         password = data.get('password')
@@ -75,7 +75,7 @@ def logout():
 @app.route('/admin/dashboard', methods=['GET'])
 @login_required
 def admin_dashboard():
-    if not current_user.is_admin:
+    if current_user.role != 'admin':
         return jsonify({'error': 'Access denied'}), 403
     
     items = Item.query.all()
@@ -84,7 +84,7 @@ def admin_dashboard():
 @app.route('/admin/attempts', methods=['GET'])
 @login_required
 def attempted_borrows():
-    if not current_user.is_admin:
+    if current_user.role != 'admin':
         return redirect(url_for('login'))
     
     attempted_borrows = BorrowingHistory.query.all()
