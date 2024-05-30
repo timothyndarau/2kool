@@ -1,6 +1,7 @@
 from models import db, User, Item, Inventory, BorrowingHistory  # Ensure to import your models
 from flask import Flask
 from werkzeug.security import generate_password_hash
+from datetime import datetime
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///your_database.db'
@@ -26,11 +27,13 @@ inventory_data = [
 ]
 
 borrowing_history_data = [
-    {'user_id': 1, 'item_id': 1, 'returned': False},
-    {'user_id': 2, 'item_id': 2, 'returned': True}
+    {'user_id': 1, 'username': 'teacher1', 'item_id': 1, 'item_name': 'Item1', 'item_description': 'Description for Item 1', 'borrowed_quantity': 2, 'borrowed_at': datetime(2024, 5, 1, 12, 0, 0), 'returned': False},
+    {'user_id': 2, 'username': 'student1', 'item_id': 2, 'item_name': 'Item2', 'item_description': 'Description for Item 2', 'borrowed_quantity': 1, 'borrowed_at': datetime(2024, 5, 15, 14, 30, 0), 'returned': True}
 ]
 
 with app.app_context():
+    # Drop all tables and create them again
+    db.drop_all()
     db.create_all()
 
     # Seed users
@@ -47,8 +50,8 @@ with app.app_context():
     db.session.commit()  # Commit here to get item IDs
     
     # Seed inventory
-    for inventory_data in inventory_data:
-        inventory = Inventory(**inventory_data)
+    for inv_data in inventory_data:
+        inventory = Inventory(**inv_data)
         db.session.add(inventory)
 
     # Seed borrowing history

@@ -85,11 +85,26 @@ def admin_dashboard():
 @login_required
 def attempted_borrows():
     if current_user.role != 'admin':
-        return redirect(url_for('login'))
-    
-    attempted_borrows = BorrowingHistory.query.all()
-    return jsonify({'attempted_borrows': [attempt.to_dict() for attempt in attempted_borrows]}), 200
+        return jsonify({'error': 'Access denied'}), 403
 
+    try:
+        attempted_borrows = BorrowingHistory.query.all()
+        result = []
+        for attempt in attempted_borrows:
+            item = Item.query.get(attempt.item_id)
+            user = User.query.get(attempt.user_id)
+            result.append({
+                'id': attempt.id,
+                'username': user.username if user else 'Unknown',
+                'item_name': item.name if item else 'Unknown',
+                'borrowed_at': attempt.borrowed_at,
+                'returned': attempt.returned
+            })
+        return jsonify({'attempted_borrows': result}), 200
+    except Exception as e:
+        app.logger.error(f"Error fetching borrowing history: {str(e)}")
+        return jsonify({'error': 'Internal server error'}), 500
+    
 @app.route('/input', methods=['POST'])
 def add_to_inventory():
     try:
