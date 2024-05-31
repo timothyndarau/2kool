@@ -9,7 +9,7 @@ class User(UserMixin, db.Model):
     __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(100), unique=True, nullable=False)
-    password = db.Column(db.String(100), nullable=False)
+    password_hash = db.Column(db.String(100), nullable=False)
     is_admin = db.Column(db.Boolean, default=False)
     role = db.Column(db.String(10), nullable=False)  # Role: 'teacher' or 'student'
 
@@ -25,7 +25,7 @@ class Item(db.Model):
     name = db.Column(db.String(100), unique=True, nullable=False)
     description = db.Column(db.String(255), nullable=False)
     availability = db.Column(db.Boolean, default=True)
-    inventory = db.relationship('Inventory', backref='item', uselist=False)
+    inventory = db.relationship('Inventory', backref='item', uselist=False, cascade="all, delete-orphan")
 
     def __init__(self, name, description):
         self.name = name
@@ -42,15 +42,14 @@ class BorrowingHistory(db.Model):
     __tablename__ = 'borrowing_history'
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    role = db.Column(db.String(10), nullable=False)
     username = db.Column(db.String(150), nullable=False)
     item_id = db.Column(db.Integer, db.ForeignKey('items.id'), nullable=False)
     item_name = db.Column(db.String(150), nullable=False)
     item_description = db.Column(db.Text, nullable=True)
     borrowed_quantity = db.Column(db.Integer, nullable=False)
     returned = db.Column(db.Boolean, default=False)
-    
     borrowed_at = db.Column(db.DateTime, default=datetime.utcnow)
-
 
     user = db.relationship('User', backref='borrowing_history')
     item = db.relationship('Item', backref='borrowing_history')

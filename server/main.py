@@ -6,6 +6,7 @@ from flask_migrate import Migrate
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from models import db, Item, BorrowingHistory, User, Inventory  # Import all models
+from datetime import datetime
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -40,6 +41,34 @@ def login():
         # If GET request, return a simple message or an HTML template
         return jsonify({'message': 'Please login via POST request with username and password'}), 200
 
+from flask import request, jsonify
+
+@app.route('/reset-password', methods=['POST'])
+def reset_password_request():
+    email = request.json.get('email')
+    user = User.query.filter_by(email=email).first()
+    
+    if user:
+        # Generate a password reset token (use itsdangerous or similar)
+        token = generate_reset_token(user)
+        send_reset_email(user.email, token)
+    
+    return jsonify({'message': 'If your email is in our system, you will receive a password reset link.'}), 200
+
+
+@app.route('/reset-password/<token>', methods=['POST'])
+def reset_password(token):
+    new_password = request.json.get('password')
+    user = verify_reset_token(token)
+    
+    if user:
+        user.set_password(new_password)
+        db.session.commit()
+        return jsonify({'message': 'Password has been reset successfully.'}), 200
+    
+    return jsonify({'message': 'Invalid or expired token.'}), 400
+
+
 @app.route('/signup', methods=['POST'])
 def signup():
     try:
@@ -71,6 +100,45 @@ def signup():
 def logout():
     logout_user()
     return jsonify({'message': 'Logged out successfully'}), 200
+
+@app.route('/borrow', methods=['POST'])
+def borrow_item():
+    data = request.json
+    user_id = data.get('user_id')
+    item_id = data.get('item_id')
+    quantity = data.get('quantity')
+
+    if not user_id or not item_id or not quantity:
+        return jsonify({"error": "Missing user_id, item_id, or quantity"}), 400
+
+    user = User.query.get(user_id)
+    item = Item.query.get(item_id)
+    inventory = Inventory.query.filter_by(item_id=item_id).first()
+
+    if not user or not item or not inventory:
+        return jsonify({"error": "Invalid user_id, item_id, or item not found in inventory"}), 404
+
+    if inventory.quantity < quantity:
+        return jsonify({"error": "Not enough items in inventory"}), 400
+
+    # Update inventory
+    inventory.quantity -= quantity
+
+    # Add to borrowing history
+    history_entry = BorrowingHistory(
+        user_id=user.id,
+        username=user.username,
+        item_id=item.id,
+        item_name=item.name,
+        item_description=item.description,
+        borrowed_quantity=quantity,
+        borrowed_at=datetime.utcnow(),
+        returned=False
+    )
+    db.session.add(history_entry)
+    db.session.commit()
+
+    return jsonify({"message": "Item borrowed successfully"}), 200
 
 @app.route('/admin/dashboard', methods=['GET'])
 @login_required
