@@ -32,7 +32,7 @@ def login():
 
         # Perform login authentication
         user = User.query.filter_by(username=username).first()
-        if user and check_password_hash(user.password, password):
+        if user and user.check_password( password):
             login_user(user)
             return jsonify({'message': 'Login successful'}), 200
         else:
@@ -40,8 +40,6 @@ def login():
     else:
         # If GET request, return a simple message or an HTML template
         return jsonify({'message': 'Please login via POST request with username and password'}), 200
-
-from flask import request, jsonify
 
 @app.route('/reset-password', methods=['POST'])
 def reset_password_request():

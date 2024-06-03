@@ -2,62 +2,58 @@ import React, { useState, useEffect } from 'react';
 import '../App.css';
 
 const AdminDashboard = () => {
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
-    const [teachers, setTeachers] = useState([]);
-    const [students, setStudents] = useState([]);
-    const [items, setItems] = useState([]);
+  const [attemptedBorrows, setAttemptedBorrows] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-    useEffect(() => {
-        fetchData();
-    }, []);
-
-    const fetchData = async () => {
-        setLoading(true);
-        try {
-            const response = await fetch('http://localhost:3000/admin/dashboard');
-            if (response.ok) {
-                const data = await response.json();
-                setTeachers(data.teachers);
-                setStudents(data.students);
-                setItems(data.items);
-            } else {
-                setError('Failed to fetch data');
-            }
-        } catch (error) {
-            setError('An error occurred');
-            console.error('Error occurred:', error);
-        } finally {
-            setLoading(false);
+  useEffect(() => {
+    const fetchAttemptedBorrows = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/admin/dashboard', {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
         }
+        const data = await response.json();
+        setAttemptedBorrows(data.attempted_borrows);
+        setLoading(false);
+      } catch (error) {
+        setError("Failed to fetch data");
+        setLoading(false);
+      }
     };
 
-    return (
-        <div className="admin-dashboard-container">
-            <h2>Admin Dashboard</h2>
-            {loading && <p>Loading...</p>}
-            {error && <p className="error">{error}</p>}
-            {/* Display data fetched */}
-            <h3>Teachers</h3>
-            <ul>
-                {teachers.map((teacher) => (
-                    <li key={teacher.id}>{teacher.name}</li>
-                ))}
-            </ul>
-            <h3>Students</h3>
-            <ul>
-                {students.map((student) => (
-                    <li key={student.id}>{student.name}</li>
-                ))}
-            </ul>
-            <h3>Items</h3>
-            <ul>
-                {items.map((item) => (
-                    <li key={item.id}>{item.name}</li>
-                ))}
-            </ul>
-        </div>
-    );
+    fetchAttemptedBorrows();
+  }, []);
+
+  if (loading) {
+    return <p>Loading...</p>;
+  }
+
+  if (error) {
+    return <p style={{ color: "red" }}>{error}</p>;
+  }
+
+  if (!attemptedBorrows || attemptedBorrows.length === 0) {
+    return <p>No attempted borrows found</p>;
+  }
+
+  return (
+    <div className="admin-dashboard">
+      <h2>Borrowers History</h2>
+      <ul>
+        {attemptedBorrows.map((attempt) => (
+          <li key={attempt.id}>
+            User: {attempt.username}, Item: {attempt.item_name}, Borrowed At: {new Date(attempt.borrowed_at).toLocaleString()}, Returned: {attempt.returned.toString()}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
 };
 
 export default AdminDashboard;

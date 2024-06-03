@@ -4,7 +4,7 @@ import '../App.css';
 const Signup = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [email, setEmail] = useState("");
+  const [role, setRole] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -17,14 +17,15 @@ const Signup = () => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ username, password, email }),
+        body: JSON.stringify({ username, password, role }),
       });
       if (response.ok) {
         // Signup successful
         console.log("Signup successful");
+        setError("");  // Clear previous errors
       } else {
         const data = await response.json();
-        setError(data.error || "Signup failed");
+        setError(data.message || "Signup failed");
       }
     } catch (error) {
       setError("An error occurred");
@@ -36,8 +37,6 @@ const Signup = () => {
 
   return (
     <div className="signup-container">
-      {" "}
-      {/* Use className instead of style */}
       <h2>Sign Up</h2>
       <form onSubmit={handleSubmit}>
         <input
@@ -45,22 +44,55 @@ const Signup = () => {
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           placeholder="Username"
+          disabled={loading}
         />
         <input
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           placeholder="Password"
+          disabled={loading}
         />
-        <input
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="Email"
-        />
+        <div className="role-selection">
+          <label>
+            <input
+              type="radio"
+              name="role"
+              value="teacher"
+              checked={role === "teacher"}
+              onChange={() => setRole("teacher")}
+              disabled={loading}
+            />
+            Teacher
+          </label>
+          <label>
+            <input
+              type="radio"
+              name="role"
+              value="student"
+              checked={role === "student"}
+              onChange={() => setRole("student")}
+              disabled={loading}
+            />
+            Student
+          </label>
+          <label>
+            <input
+              type="radio"
+              name="role"
+              value="admin"
+              checked={role === "admin"}
+              onChange={() => setRole("admin")}
+              disabled={loading}
+            />
+            Admin
+          </label>
+        </div>
         {loading && <p>Loading...</p>}
         {error && <p style={{ color: "red" }}>{error}</p>}
-        <button type="submit">Signup</button>
+        <button type="submit" disabled={loading}>
+          {loading ? "Signing up..." : "Signup"}
+        </button>
       </form>
     </div>
   );

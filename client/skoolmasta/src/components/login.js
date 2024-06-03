@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import '../App.css'; // Import the CSS file
 
 const Login = () => {
@@ -19,7 +20,7 @@ const Login = () => {
         setLoading(true);
 
         try {
-            const response = await fetch('http://localhost:3000/login', {
+            const response = await fetch('http://localhost:5000/login', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -27,22 +28,18 @@ const Login = () => {
                 body: JSON.stringify({ username, password }),
             });
 
-            // Check if response is okay
             if (response.ok) {
-                const responseData = await response.json(); // Parse JSON response
+                const responseData = await response.json();
                 console.log('Parsed Response Data:', responseData);
-                // Further processing of parsed data...
                 console.log('Login successful');
                 setUsername('');
                 setPassword('');
                 setError('');
             } else {
-                // Handle non-200 status code
                 const data = await response.json();
                 setError(data.error || 'Login failed');
             }
         } catch (error) {
-            // Handle fetch or parsing errors
             setError('An error occurred. Please try again later.');
             console.error('Error occurred:', error);
         } finally {
@@ -76,6 +73,12 @@ const Login = () => {
                     {loading ? 'Logging in...' : 'Login'}
                 </button>
             </form>
+            <p>
+                Are you new to the school ? <Link to="/signup">Sign up here</Link>
+            </p>
+            <p>
+                Forgot your password ? <Link to="/reset-password">Reset it here</Link>
+            </p>
         </div>
     );
 };

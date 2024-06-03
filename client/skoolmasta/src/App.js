@@ -5,6 +5,8 @@ import Login from './components/login';
 import Signup from './components/signup';
 import AdminDashboard from './components/AdminDashboard';
 import AttemptedBorrows from './components/AttemptedBorrows';
+import ResetPassword from './components/ResetPassword';
+import Borrow from './components/Borrows';
 import Input from './components/input';
 
 function App() {
@@ -14,6 +16,8 @@ function App() {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
+          <Route path="/borrow" element={Borrow} />
+          <Route path="/reset-password" element={ResetPassword} />
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
           <Route path="/admin/attempts" element={<AttemptedBorrows />} />
           <Route path="/input" element={<Input />} />

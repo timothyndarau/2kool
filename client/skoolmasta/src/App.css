@@ -7,7 +7,7 @@
     padding: 20px;
     border: 1px solid #ccc;
     border-radius: 5px;
-    background-color: #f9f9f9;
+    background-color: #538e96;
 }
 
 .error {
@@ -19,17 +19,43 @@
     max-width: 400px;
     margin: auto;
     padding: 20px;
-    border: 1px solid #ccc;
+    border: 1px solid #5e9a9e;
     border-radius: 5px;
-    background-color: #f9f9f9;
+    background-color: #66a1f9;
   }
   
-  /* AdminDashboard Component */
-  .admin-container {
-    max-width: 800px;
-    margin: auto;
-    padding: 20px;
-  }
+ /* AdminDashboard Component */
+.admin-dashboard {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background-color: #f9f9f9;
+}
+
+.admin-dashboard h2 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.admin-dashboard ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.admin-dashboard li {
+  padding: 10px;
+  margin-bottom: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background-color: #fff;
+}
+
+.admin-dashboard li:nth-child(even) {
+  background-color: #f2f2f2;
+}
+
   
   /* AttemptedBorrows Component */
   .attempted-container {
@@ -38,33 +64,51 @@
     padding: 20px;
   }
   
-  /* Input Component */
-  .input-form {
-    margin-bottom: 20px;
+ /* AddToInventory Component */
+.add-to-inventory-container {
+  max-width: 400px;
+  margin: 0 auto;
+  padding: 20px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background-color: #66a1f9;
+}
+
+.add-to-inventory-container h2 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.input-form {
+  margin-bottom: 20px;
 }
 
 .input-field {
-    width: 100%;
-    padding: 10px;
-    margin-bottom: 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    box-sizing: border-box;
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  box-sizing: border-box;
 }
 
 .submit-button {
-    background-color: dodgerblue;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    padding: 10px 20px;
-    cursor: pointer;
+  width: 100%;
+  background-color: dodgerblue;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  padding: 10px 20px;
+  cursor: pointer;
 }
 
 .submit-button:hover {
-    background-color: #007bff;
+  background-color: #007bff;
 }
 
 .error-message {
-    color: red;
+  color: red;
+  margin-bottom: 10px;
+  text-align: center;
 }
+
