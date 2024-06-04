@@ -53,3 +53,18 @@ class BorrowingHistory(db.Model):
 
     user = db.relationship('User', backref='borrowing_history')
     item = db.relationship('Item', backref='borrowing_history')
+
+class Borrow(db.Model):
+    __tablename__ = 'borrow'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    item_id = db.Column(db.Integer, db.ForeignKey('items.id'), nullable=False)
+    quantity = db.Column(db.Integer, nullable=False)
+
+    def serialize(self):
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'item_id': self.item_id,
+            'quantity': self.quantity,
+        }

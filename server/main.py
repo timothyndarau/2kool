@@ -5,7 +5,7 @@ from flask_cors import CORS
 from flask_migrate import Migrate
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
-from models import db, Item, BorrowingHistory, User, Inventory  # Import all models
+from models import db, Item, BorrowingHistory, User, Inventory, Borrow  # Import all models
 from datetime import datetime
 
 logging.basicConfig(level=logging.DEBUG)
@@ -66,7 +66,6 @@ def reset_password(token):
     
     return jsonify({'message': 'Invalid or expired token.'}), 400
 
-
 @app.route('/signup', methods=['POST'])
 def signup():
     try:
@@ -84,7 +83,7 @@ def signup():
 
         # Correct the hashing method
         hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
-        new_user = User(username=username, password=hashed_password, role=role)
+        new_user = User(username=username, password_hash=hashed_password, role=role)
         db.session.add(new_user)
         db.session.commit()
 
@@ -92,6 +91,7 @@ def signup():
     except Exception as e:
         app.logger.error(f'Error during signup: {str(e)}')
         return jsonify({'success': False, 'message': 'Internal server error'}), 500
+
     
 @app.route('/logout')
 @login_required
@@ -139,13 +139,28 @@ def borrow_item():
     return jsonify({"message": "Item borrowed successfully"}), 200
 
 @app.route('/admin/dashboard', methods=['GET'])
-@login_required
 def admin_dashboard():
-    if current_user.role != 'admin':
-        return jsonify({'error': 'Access denied'}), 403
-    
-    items = Item.query.all()
-    return jsonify({'items': [item.to_dict() for item in items]}), 200
+    try:
+        key_metrics = get_key_metrics()
+        borrow_attempts = Borrow.query.all()
+        serialized_attempts = [attempt.serialize() for attempt in borrow_attempts]
+
+        return jsonify({
+            'key_metrics': key_metrics,
+            'borrow_attempts': serialized_attempts
+        }), 200
+    except Exception as e:
+        app.logger.error(f'Error fetching admin dashboard data: {str(e)}')
+        return jsonify({'message': 'Internal server error'}), 500
+
+def get_key_metrics():
+    # Dummy implementation for key metrics
+    return {
+        'total_users': User.query.count(),
+        'total_borrow_attempts': Borrow.query.count(),
+        'total_items': Item.query.count()
+    }
+
 
 @app.route('/admin/attempts', methods=['GET'])
 @login_required
