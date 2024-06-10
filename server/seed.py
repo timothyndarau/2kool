@@ -142,15 +142,30 @@ with app.app_context():
 
     # Seed items
     for item_data in items_data:
-        item = Item(name=item_data['name'], description=item_data['description'])
-        db.session.add(item)
+        existing_item = Item.query.filter_by(name=item_data['name']).first()
+        if existing_item:
+            print("Item already exists:", existing_item.name)
+            # Handle the case where the item already exists
+        else:
+            new_item = Item(name=item_data['name'], description=item_data['description'])
+            db.session.add(new_item)
     
     db.session.commit()  # Commit here to get item IDs
     
     # Seed inventory
     for inv_data in inventory_data:
-        inventory = Inventory(**inv_data)
-        db.session.add(inventory)
+        item_id = inv_data.get('item_id')
+        quantity = inv_data.get('quantity')
+        
+        # Check if item_id exists in the items table
+        item = Item.query.get(item_id)
+        if item:
+            inventory = Inventory(item_id=item_id, quantity=quantity)
+            db.session.add(inventory)
+        else:
+            print(f"Item with ID {item_id} does not exist.")
+    
+    db.session.commit()
 
     # Seed borrowing history
     for history_data in borrowing_history_data:

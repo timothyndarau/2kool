@@ -22,15 +22,11 @@ class User(UserMixin, db.Model):
 class Item(db.Model):
     __tablename__ = 'items'
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), unique=True, nullable=False)
-    description = db.Column(db.String(255), nullable=False)
-    availability = db.Column(db.Boolean, default=True)
-    inventory = db.relationship('Inventory', backref='item', uselist=False, cascade="all, delete-orphan")
-
-    def __init__(self, name, description):
-        self.name = name
-        self.description = description
-        self.inventory = Inventory(quantity=0)  # Initialize inventory with quantity 0
+    name = db.Column(db.String(64), unique=True)
+    description = db.Column(db.String(256))
+    
+    # Update the current_borrows relationship definition
+    current_borrows = db.relationship('Borrow', back_populates='item_info', overlaps="item_info")
 
 class Inventory(db.Model):
     __tablename__ = 'inventory'
@@ -59,16 +55,11 @@ class BorrowingHistory(db.Model):
 class Borrow(db.Model):
     __tablename__ = 'borrow'
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(100), unique=True, nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    item_name = db.Column(db.String(150), nullable=False)
-    description = db.Column(db.String(255), nullable=False)
-    quantity = db.Column(db.Integer, nullable=False)
-
-    def serialize(self):
-        return {
-            'id': self.id,
-            'user_id': self.user_id,
-            'item_id': self.item_id,
-            'quantity': self.quantity,
-        }
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    item_id = db.Column(db.Integer, db.ForeignKey('items.id'))
+    borrowed_quantity = db.Column(db.Integer)
+    borrowed_at = db.Column(db.DateTime)
+    returned = db.Column(db.Boolean)
+    
+    # Define item_info property
+    item_info = db.relationship('Item', back_populates='current_borrows')
