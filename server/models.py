@@ -36,6 +36,8 @@ class Inventory(db.Model):
     __tablename__ = 'inventory'
     id = db.Column(db.Integer, primary_key=True)
     item_id = db.Column(db.Integer, db.ForeignKey('items.id'), nullable=False)
+    name = db.Column(db.String(100), unique=True, nullable=False)
+    description = db.Column(db.String(255), nullable=False)
     quantity = db.Column(db.Integer, nullable=False)
 
 class BorrowingHistory(db.Model):
@@ -57,8 +59,10 @@ class BorrowingHistory(db.Model):
 class Borrow(db.Model):
     __tablename__ = 'borrow'
     id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(100), unique=True, nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    item_id = db.Column(db.Integer, db.ForeignKey('items.id'), nullable=False)
+    item_name = db.Column(db.String(150), nullable=False)
+    description = db.Column(db.String(255), nullable=False)
     quantity = db.Column(db.Integer, nullable=False)
 
     def serialize(self):
