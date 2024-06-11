@@ -65,15 +65,33 @@ users_data = [
     {'username': 'Betti MacPaden', 'password': '22418', 'role': 'student'}
 
 ]
-
 items_data = [
-    {'name': 'Item1', 'description': 'Description for Item 1'},
-    {'name': 'Item2', 'description': 'Description for Item 2'}
+    {'id': 1, 'name': 'Item1', 'description': 'Description1', 'quantity': 10},
+    {'id': 2, 'name': 'Item2', 'description': 'Description2', 'quantity': 5},
+    # Add more items as needed
 ]
 
+
 inventory_data = [
-    {'item_id': 1, 'quantity': 10},
-    {'item_id': 2, 'quantity': 5}
+    {
+        "item_id": 1,
+        "name": "Sword",
+        "description": "A sharp weapon used for combat.",
+        "quantity": 10
+    },
+    {
+        "item_id": 2,
+        "name": "Potion",
+        "description": "A magical elixir that restores health.",
+        "quantity": 20
+    },
+    {
+        "item_id": 3,
+        "name": "Armor",
+        "description": "Protective gear worn to reduce damage taken.",
+        "quantity": 15
+    },
+    # Add more items with their respective names
 ]
 
 borrowing_history_data = [
@@ -128,48 +146,33 @@ borrowing_history_data = [
     {'user_id': 22195, 'role': 'teacher', 'username': 'Brucie Carwithen', 'item_id': 6509, 'item_name': 'rulers', 'item_description': 'Vintage collectible', 'borrowed_quantity': 33, 'borrowed_at': datetime(2024, 1, 5, 14, 38, 27), 'returned': False},
     {'user_id': 22418, 'role': 'student', 'username': 'Betti MacPaden', 'item_id': 5819, 'item_name': 'scissors', 'item_description': 'High-quality item', 'borrowed_quantity': 51, 'borrowed_at': datetime(2024, 1, 10, 12, 13, 45), 'returned': False}
 ]
+def seed_db():
+    with app.app_context():
+        # Drop all tables and create them again
+        db.drop_all()
+        db.create_all()
 
-with app.app_context():
-    # Drop all tables and create them again
-    db.drop_all()
-    db.create_all()
+        for user_data in users_data:
+            user = User(username=user_data['username'], role=user_data['role'])
+            user.set_password(user_data['password'])
+            db.session.add(user)
 
-    # Seed users
-    for user_data in users_data:
-        user = User(username=user_data['username'], role=user_data['role'])
-        user.set_password(user_data['password'])  # Use set_password to hash the password
-        db.session.add(user)
-
-    # Seed items
-    for item_data in items_data:
-        existing_item = Item.query.filter_by(name=item_data['name']).first()
-        if existing_item:
-            print("Item already exists:", existing_item.name)
-            # Handle the case where the item already exists
-        else:
-            new_item = Item(name=item_data['name'], description=item_data['description'])
-            db.session.add(new_item)
     
-    db.session.commit()  # Commit here to get item IDs
+        for item_data in items_data:
+            item = Item(id=item_data['id'], name=item_data['name'], description=item_data['description'], quantity=item_data['quantity'])
+            db.session.add(item)
+
     
-    # Seed inventory
-    for inv_data in inventory_data:
-        item_id = inv_data.get('item_id')
-        quantity = inv_data.get('quantity')
-        
-        # Check if item_id exists in the items table
-        item = Item.query.get(item_id)
-        if item:
-            inventory = Inventory(item_id=item_id, quantity=quantity)
+        for inventory_item in inventory_data:
+            inventory = Inventory(item_id=inventory_item['item_id'], quantity=inventory_item['quantity'])
             db.session.add(inventory)
-        else:
-            print(f"Item with ID {item_id} does not exist.")
     
-    db.session.commit()
+        for history in borrowing_history_data:
+            borrowing_history = BorrowingHistory(user_id=history['user_id'], role=history['role'], username=history['username'], item_id=history['item_id'], item_name=history['item_name'], item_description=history['item_description'], borrowed_quantity=history['borrowed_quantity'], borrowed_at=history['borrowed_at'], returned=history['returned'])
+            db.session.add(borrowing_history)
+        
+        db.session.commit()
+        print('Database seeded!')
 
-    # Seed borrowing history
-    for history_data in borrowing_history_data:
-        history = BorrowingHistory(**history_data)
-        db.session.add(history)
-
-    db.session.commit()
+if __name__ == '__main__':
+    seed_db()

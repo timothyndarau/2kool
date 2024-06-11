@@ -22,8 +22,9 @@ class User(UserMixin, db.Model):
 class Item(db.Model):
     __tablename__ = 'items'
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(64), unique=True)
-    description = db.Column(db.String(256))
+    name = db.Column(db.String(100))
+    description = db.Column(db.String(255))
+    quantity = db.Column(db.Integer)
     
     # Update the current_borrows relationship definition
     current_borrows = db.relationship('Borrow', back_populates='item_info', overlaps="item_info")
@@ -31,10 +32,11 @@ class Item(db.Model):
 class Inventory(db.Model):
     __tablename__ = 'inventory'
     id = db.Column(db.Integer, primary_key=True)
-    item_id = db.Column(db.Integer, db.ForeignKey('items.id'), nullable=False)
+    item_id = db.Column(db.Integer, db.ForeignKey('items.id'), nullable=False)  # Change 'items' to 'item'
     name = db.Column(db.String(100), unique=True, nullable=False)
     description = db.Column(db.String(255), nullable=False)
     quantity = db.Column(db.Integer, nullable=False)
+
 
 class BorrowingHistory(db.Model):
     __tablename__ = 'borrowing_history'
@@ -42,7 +44,7 @@ class BorrowingHistory(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     role = db.Column(db.String(10), nullable=False)
     username = db.Column(db.String(150), nullable=False)
-    item_id = db.Column(db.Integer, db.ForeignKey('items.id'), nullable=False)
+    item_id = db.Column(db.Integer, db.ForeignKey('items.id'))
     item_name = db.Column(db.String(150), nullable=False)
     item_description = db.Column(db.Text, nullable=True)
     borrowed_quantity = db.Column(db.Integer, nullable=False)
